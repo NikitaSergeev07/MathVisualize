@@ -14,7 +14,7 @@ const FRAG = `#version 300 es
 precision highp float;
 const int MAXDEG = ${MAXDEG};
 const int MAXR = ${MAXR};
-const int MAXITER = 96;
+const int MAXITER = 256;
 uniform float uCoeffs[MAXDEG + 1];
 uniform vec2 uRoots[MAXR];
 uniform int uDeg;
@@ -183,15 +183,17 @@ function makeInstance(host: VizHost): VizInstance {
   const vao = fullscreenTriangle(gl);
   let palTex = paletteTexture(gl, 'turbo');
 
+  const HARD_MAX_ITER = 256;
+  const INITIAL_SCALE = 1.6;
   const st = {
     poly: 'z^3 - 1',
     palette: 'turbo',
-    maxIter: 48,
+    maxIter: 90,
   };
   let coeffs = parsePoly(st.poly)!;
   let roots = findRoots(coeffs);
   let center: Complex = { re: 0, im: 0 };
-  let scale = 1.6;
+  let scale = INITIAL_SCALE;
   let needsRender = true;
 
   // cache uniform locations
@@ -235,7 +237,12 @@ function makeInstance(host: VizHost): VizInstance {
 
     gl.uniform1i(loc.deg, coeffs.length - 1);
     gl.uniform1i(loc.rootCount, Math.min(roots.length, MAXR));
-    gl.uniform1i(loc.maxIter, Math.round(st.maxIter));
+    // The basin boundaries are genuinely fractal — infinitely fine filaments.
+    // Resolving them deeper requires more Newton steps, so we ramp the iteration
+    // budget up automatically as you zoom in.
+    const zoomBoost = Math.round(Math.max(0, Math.log2(INITIAL_SCALE / scale)) * 14);
+    const effIter = Math.min(HARD_MAX_ITER, Math.round(st.maxIter) + zoomBoost);
+    gl.uniform1i(loc.maxIter, effIter);
     gl.uniform2f(loc.center, center.re, center.im);
     gl.uniform1f(loc.scale, scale);
     gl.uniform1f(loc.aspect, canvas.width / canvas.height);
@@ -262,7 +269,7 @@ function makeInstance(host: VizHost): VizInstance {
         roots = findRoots(coeffs);
         // reset view when the polynomial changes
         center = { re: 0, im: 0 };
-        scale = 1.6;
+        scale = INITIAL_SCALE;
         needsRender = true;
       }
     }
@@ -287,7 +294,8 @@ function makeInstance(host: VizHost): VizInstance {
     const offx = (fx * 2 - 1) * aspect;
     const offy = 1 - 2 * fy;
     const factor = Math.exp(e.deltaY * 0.001);
-    const newScale = Math.max(1e-6, Math.min(8, scale * factor));
+    // Allow very deep zoom; ~2e-7 is roughly where float32 precision gives out.
+    const newScale = Math.max(2e-7, Math.min(8, scale * factor));
     center.re += offx * (scale - newScale);
     center.im += offy * (scale - newScale);
     scale = newScale;
@@ -363,7 +371,7 @@ export const newtonDef: VizDef = {
   params: [
     { type: 'text', key: 'poly', label: 'Polynomial p(z)', default: 'z^3 - 1', placeholder: 'z^3 - 1' },
     { type: 'palette', key: 'palette', label: 'Palette', default: 'turbo' },
-    { type: 'range', key: 'maxIter', label: 'Max iterations', min: 8, max: 96, step: 1, default: 48 },
+    { type: 'range', key: 'maxIter', label: 'Detail (iterations)', min: 20, max: 200, step: 1, default: 90 },
   ],
   create: makeInstance,
   thumbnail(canvas) {

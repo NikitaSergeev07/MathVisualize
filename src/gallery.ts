@@ -1,22 +1,36 @@
-// The landing gallery: a grid of cards, each with a live (statically rendered)
-// thumbnail and a link into the visualization.
+// The landing gallery: editorial, minimal, warm. Live (statically rendered)
+// thumbnails sit framed like artworks; pixel-art accents add personality.
 
 import { VISUALIZATIONS } from './viz/registry';
 import { makeGradientCss } from './shared/palettes';
+import { SPARKLE, mascotSvg, rainSparkles } from './shared/pixel';
 
+const REPO = 'https://github.com/NikitaSergeev07/MathVisualize';
 const FALLBACK_PALETTES = ['inferno', 'aurora', 'turbo', 'sunset', 'ice'];
 
 export function renderGallery(container: HTMLElement): void {
   container.innerHTML = '';
+
+  const header = document.createElement('header');
+  header.className = 'site-header';
+  header.innerHTML = `
+    <a class="wordmark" href="#/">${SPARKLE('#c15f3c', 3)}MathVisualize</a>
+    <nav class="site-nav">
+      <a href="${REPO}" target="_blank" rel="noopener">GitHub</a>
+      <a href="${REPO}/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
+    </nav>`;
+  container.append(header);
+
   const page = document.createElement('div');
   page.className = 'gallery';
 
-  const hero = document.createElement('header');
+  const hero = document.createElement('section');
   hero.className = 'hero';
   hero.innerHTML = `
-    <h1 class="hero-title">Math<span>Visualize</span></h1>
-    <p class="hero-sub">An open gallery of interactive mathematical art. Play with the
-    sliders, roll the dice, and share the exact picture you find.</p>`;
+    <span class="eyebrow">${SPARKLE('#c15f3c', 2)} Open-source gallery</span>
+    <h1 class="hero-title">Mathematics you can <em>play</em> with.</h1>
+    <p class="hero-sub">A small collection of interactive visualizations. Move a slider,
+    roll the dice, and share a link to the exact picture you find.</p>`;
   page.append(hero);
 
   const grid = document.createElement('div');
@@ -30,14 +44,12 @@ export function renderGallery(container: HTMLElement): void {
 
     const thumb = document.createElement('div');
     thumb.className = 'card-thumb';
-
     const canvas = document.createElement('canvas');
     canvas.width = 480;
     canvas.height = 320;
     thumb.append(canvas);
 
     if (viz.thumbnail) {
-      // defer so the grid paints first
       requestAnimationFrame(() => {
         try {
           viz.thumbnail!(canvas, 1234 + i);
@@ -51,7 +63,10 @@ export function renderGallery(container: HTMLElement): void {
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
-    meta.innerHTML = `<h2>${viz.title}</h2><p>${viz.tagline}</p>`;
+    meta.innerHTML = `
+      <span class="card-index">${String(i + 1).padStart(2, '0')}</span>
+      <h2>${viz.title}</h2>
+      <p>${viz.tagline}</p>`;
 
     card.append(thumb, meta);
     grid.append(card);
@@ -59,8 +74,36 @@ export function renderGallery(container: HTMLElement): void {
 
   const footer = document.createElement('footer');
   footer.className = 'gallery-footer';
-  footer.innerHTML = `
-    <p>Built with Vite + TypeScript · WebGL & Canvas · <a href="https://github.com" target="_blank" rel="noopener">Source on GitHub</a> · MIT licensed</p>`;
+
+  const left = document.createElement('div');
+  left.className = 'footer-left';
+  const mascot = document.createElement('button');
+  mascot.className = 'mascot';
+  mascot.type = 'button';
+  mascot.title = 'hello';
+  mascot.setAttribute('aria-label', 'mascot');
+  mascot.innerHTML = mascotSvg(4);
+  let pats = 0;
+  mascot.addEventListener('click', () => {
+    mascot.classList.remove('hop');
+    void mascot.offsetWidth; // restart animation
+    mascot.classList.add('hop');
+    if (++pats >= 5) {
+      pats = 0;
+      rainSparkles();
+    }
+  });
+  const made = document.createElement('span');
+  made.textContent = 'Made for the love of math.';
+  left.append(mascot, made);
+
+  const links = document.createElement('div');
+  links.className = 'footer-links';
+  links.innerHTML = `
+    <a href="${REPO}" target="_blank" rel="noopener">Source</a>
+    <a href="${REPO}/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a>`;
+
+  footer.append(left, links);
   page.append(footer);
 
   container.append(page);

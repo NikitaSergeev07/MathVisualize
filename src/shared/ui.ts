@@ -4,6 +4,7 @@
 
 import type { ParamSpec, ParamValue, ParamValues } from './types';
 import { PALETTE_NAMES, getPalette, makeGradientCss } from './palettes';
+import { ICON_RANDOM, ICON_SHARE, ICON_PNG, ICON_REC } from './pixel';
 
 export interface PanelHandlers {
   onChange: (key: string, value: ParamValue) => void;
@@ -55,17 +56,19 @@ export function createControlPanel(
 
   // --- action buttons ---
   const actions = el('div', 'panel-actions');
-  const randomBtn = button('btn btn-accent', '🎲 Random');
+  const randomBtn = iconButton('btn btn-accent', ICON_RANDOM, 'Random');
   randomBtn.addEventListener('click', handlers.onRandom);
-  const shareBtn = button('btn', '🔗 Share');
+  const shareBtn = iconButton('btn', ICON_SHARE, 'Share');
   shareBtn.addEventListener('click', handlers.onShare);
-  const pngBtn = button('btn', '🖼 PNG');
+  const pngBtn = iconButton('btn', ICON_PNG, 'PNG');
   pngBtn.addEventListener('click', handlers.onExportPng);
   actions.append(randomBtn, shareBtn, pngBtn);
 
   let recBtn: HTMLButtonElement | null = null;
+  let recLabel: HTMLSpanElement | null = null;
   if (opts.canRecord) {
-    recBtn = button('btn', '⏺ Record');
+    recBtn = iconButton('btn', ICON_REC, 'Record');
+    recLabel = recBtn.querySelector('span');
     recBtn.addEventListener('click', handlers.onToggleRecord);
     actions.append(recBtn);
   }
@@ -83,7 +86,7 @@ export function createControlPanel(
     },
     setRecording(on) {
       if (!recBtn) return;
-      recBtn.textContent = on ? '⏹ Stop' : '⏺ Record';
+      if (recLabel) recLabel.textContent = on ? 'Stop' : 'Record';
       recBtn.classList.toggle('recording', on);
     },
     toast(msg) {
@@ -236,5 +239,13 @@ function button(cls: string, text: string): HTMLButtonElement {
   b.className = cls;
   b.type = 'button';
   b.textContent = text;
+  return b;
+}
+
+function iconButton(cls: string, iconSvg: string, label: string): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.className = cls;
+  b.type = 'button';
+  b.innerHTML = `${iconSvg}<span>${label}</span>`;
   return b;
 }

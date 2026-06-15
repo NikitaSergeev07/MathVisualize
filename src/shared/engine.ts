@@ -157,12 +157,12 @@ function buildTopbar(def: VizDef) {
   bar.className = 'viz-topbar';
 
   const back = document.createElement('a');
-  back.className = 'viz-back';
+  back.className = 'viz-back pill';
   back.href = '#/';
   back.innerHTML = '<span>←</span> Gallery';
 
   const titleWrap = document.createElement('div');
-  titleWrap.className = 'viz-titlewrap';
+  titleWrap.className = 'viz-titlewrap pill';
   const h = document.createElement('h1');
   h.textContent = def.title;
   const tag = document.createElement('p');
@@ -170,7 +170,7 @@ function buildTopbar(def: VizDef) {
   titleWrap.append(h, tag);
 
   const aboutBtn = document.createElement('button');
-  aboutBtn.className = 'btn viz-about-btn';
+  aboutBtn.className = 'viz-about-btn pill';
   aboutBtn.type = 'button';
   aboutBtn.textContent = 'What is this?';
   aboutBtn.dataset.about = 'toggle';
