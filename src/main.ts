@@ -4,9 +4,11 @@ import { mountViz, type EngineController } from './shared/engine';
 import { renderGallery } from './gallery';
 import { findViz } from './viz/registry';
 import { onKonami, rainSparkles } from './shared/pixel';
+import { initCursor } from './shared/cursor';
 
 const app = document.getElementById('app')!;
 
+initCursor();
 onKonami(() => rainSparkles(40));
 
 let current: EngineController | null = null;

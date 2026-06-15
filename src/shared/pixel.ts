@@ -43,19 +43,20 @@ export const ICON_REC = pixelArt(
 export const SPARKLE = (color = '#c15f3c', px = 3) =>
   pixelArt(['..#..', '.###.', '#####', '.###.', '..#..'], { '#': color }, px);
 
-// --- the mascot: an original pixel critter (the easter egg) ---
+// --- the mascot: an original pixel cat (the easter egg) ---
 const MASCOT_ROWS = [
-  '...cccccc...',
+  '..c......c..',
+  '..cc....cc..',
   '..cccccccc..',
   '.cccccccccc.',
-  '.cwwccccwwc.',
-  '.ckkcccckkc.',
+  '.cwkcccckwc.',
   '.cccccccccc.',
+  '.ccccwwcccc.',
   '.cccccccccc.',
   '..cccccccc..',
   '..cc.cc.cc..',
 ];
-const MASCOT_MAP: ColorMap = { c: '#c15f3c', w: '#faf9f5', k: '#2a2722' };
+const MASCOT_MAP: ColorMap = { c: '#c15f3c', w: '#f3efe6', k: '#2a2722' };
 
 export function mascotSvg(px = 4): string {
   return pixelArt(MASCOT_ROWS, MASCOT_MAP, px);
