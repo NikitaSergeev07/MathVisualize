@@ -104,7 +104,30 @@ export function mountViz(def: VizDef, container: HTMLElement, rawParams: Record<
     }, 250);
   };
 
-  // --- render loop ---
+  // Apply a fresh random parameter set (shared by the button, "R" and the
+  // "surprise me" deep-link).
+  const doRandomize = () => {
+    const next = instance.randomize();
+    Object.assign(values, next);
+    instance.setParams(values);
+    panel.sync(values);
+    scheduleUrlSync();
+  };
+
+  // "Surprise me" deep-link (#/v/<id>?rand=1) rolls the dice on arrival.
+  if (rawParams.rand) doRandomize();
+
+  // One-time keyboard-shortcut hint per session.
+  try {
+    if (!sessionStorage.getItem('mv-hinted')) {
+      sessionStorage.setItem('mv-hinted', '1');
+      setTimeout(() => panel.toast('R · random    S · save    H · hide'), 700);
+    }
+  } catch {
+    /* sessionStorage may be unavailable */
+  }
+
+  // --- render loop (parked while the tab is hidden) ---
   let raf = 0;
   let last = performance.now();
   const frame = (now: number) => {
@@ -113,7 +136,21 @@ export function mountViz(def: VizDef, container: HTMLElement, rawParams: Record<
     instance.update(dt);
     raf = requestAnimationFrame(frame);
   };
-  raf = requestAnimationFrame(frame);
+  const startLoop = () => {
+    if (!raf) {
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+  };
+  const stopLoop = () => {
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+  };
+  const onVisibility = () => (document.hidden ? stopLoop() : startLoop());
+  document.addEventListener('visibilitychange', onVisibility);
+  startLoop();
 
   // --- resize ---
   const ro = new ResizeObserver(() => {
@@ -126,11 +163,7 @@ export function mountViz(def: VizDef, container: HTMLElement, rawParams: Record<
   const onKey = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
     if (e.key === 'r' || e.key === 'R') {
-      const next = instance.randomize();
-      Object.assign(values, next);
-      instance.setParams(values);
-      panel.sync(values);
-      scheduleUrlSync();
+      doRandomize();
     } else if (e.key === 'h' || e.key === 'H') {
       panel.element.classList.toggle('collapsed');
     } else if (e.key === 's' || e.key === 'S') {
@@ -141,7 +174,8 @@ export function mountViz(def: VizDef, container: HTMLElement, rawParams: Record<
 
   return {
     destroy() {
-      cancelAnimationFrame(raf);
+      stopLoop();
+      document.removeEventListener('visibilitychange', onVisibility);
       ro.disconnect();
       window.removeEventListener('keydown', onKey);
       recorder.stop();

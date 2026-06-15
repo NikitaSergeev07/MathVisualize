@@ -1,6 +1,9 @@
 // Custom cursor: a precise dot, an eased follower ring, and a glowing comet
-// trail. Fine-pointer devices only (skipped on touch and for users who prefer
-// reduced motion).
+// trail. Fine-pointer devices only (skipped on touch and for reduced motion).
+//
+// Performance: the trail canvas renders at dpr 1 and the animation loop *parks
+// itself* whenever the pointer is still and the trail has faded — so it costs
+// nothing while you're just watching a visualization.
 
 interface TrailPoint {
   x: number;
@@ -24,12 +27,10 @@ export function initCursor(): void {
   const dot = div('cursor-dot');
   document.body.append(canvas, ring, dot);
 
-  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // The trail is a soft glow — dpr 1 keeps the per-frame fill cheap.
   const resize = () => {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(window.innerWidth * dpr);
-    canvas.height = Math.round(window.innerHeight * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   };
   resize();
   window.addEventListener('resize', resize);
@@ -39,7 +40,15 @@ export function initCursor(): void {
   let rx = mx;
   let ry = my;
   let shown = false;
+  let running = false;
   const pts: TrailPoint[] = [];
+
+  const ensureRunning = () => {
+    if (!running) {
+      running = true;
+      requestAnimationFrame(frame);
+    }
+  };
 
   window.addEventListener(
     'pointermove',
@@ -54,6 +63,7 @@ export function initCursor(): void {
         shown = true;
         document.body.classList.add('cursor-on');
       }
+      ensureRunning();
     },
     { passive: true },
   );
@@ -76,17 +86,18 @@ export function initCursor(): void {
   document.addEventListener('mouseenter', () => {
     document.body.classList.add('cursor-on');
     shown = true;
+    ensureRunning();
   });
 
-  const frame = () => {
-    rx += (mx - rx) * 0.18;
-    ry += (my - ry) * 0.18;
+  function frame() {
+    rx += (mx - rx) * 0.2;
+    ry += (my - ry) * 0.2;
     ring.style.transform = `translate(${rx}px, ${ry}px)`;
 
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineCap = 'round';
-    for (const p of pts) p.life -= 0.045;
+    for (const p of pts) p.life -= 0.05;
     while (pts.length && pts[0].life <= 0) pts.shift();
     for (let i = 1; i < pts.length; i++) {
       const p0 = pts[i - 1];
@@ -103,9 +114,17 @@ export function initCursor(): void {
       ctx.lineTo(p1.x, p1.y);
       ctx.stroke();
     }
+
+    // Park the loop once everything has settled — zero cost while idle.
+    const settled = Math.abs(mx - rx) < 0.1 && Math.abs(my - ry) < 0.1;
+    if (pts.length === 0 && settled) {
+      running = false;
+      return;
+    }
     requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
+  }
+
+  ensureRunning();
 }
 
 function div(cls: string): HTMLDivElement {

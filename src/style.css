@@ -96,6 +96,14 @@ button {
   color: var(--text);
   text-decoration: none;
 }
+.site-nav a.surprise {
+  color: var(--accent);
+}
+.site-nav a.surprise:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
 /* ============================ GALLERY ============================ */
 .gallery {
@@ -290,8 +298,8 @@ button {
 .pill {
   background: var(--frost);
   border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--text);
   border-radius: 999px;
   box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.65);
@@ -358,8 +366,8 @@ button {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
 }
 .panel.collapsed {
@@ -710,6 +718,7 @@ html.custom-cursor * {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
+  will-change: transform;
   opacity: 0;
   transition: opacity 0.25s ease, width 0.18s ease, height 0.18s ease,
     margin 0.18s ease, background 0.18s ease, border-color 0.18s ease;
@@ -725,6 +734,7 @@ html.custom-cursor * {
   border-radius: 50%;
   pointer-events: none;
   z-index: 10000;
+  will-change: transform;
   opacity: 0;
   transition: opacity 0.25s ease;
   box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(217, 127, 87, 0.5);
@@ -755,6 +765,49 @@ body.cursor-on .cursor-dot {
   font-family: var(--serif);
   font-weight: 500;
   font-size: 32px;
+}
+
+/* ============================ MOTION ============================ */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fadeup {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .fade-up {
+    animation: fadeup 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+
+  @keyframes vizfade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .viz-stage {
+    animation: vizfade 0.5s ease backwards;
+  }
+  .viz-topbar,
+  .panel {
+    animation: vizfade 0.45s ease 0.05s backwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* ============================ MOBILE ============================ */

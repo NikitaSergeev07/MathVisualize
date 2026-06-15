@@ -14,20 +14,26 @@ export function renderGallery(container: HTMLElement): void {
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a class="wordmark" href="#/">${SPARKLE('#c15f3c', 3)}MathVisualize</a>
+    <a class="wordmark" href="#/">${SPARKLE('#d97f57', 3)}MathVisualize</a>
     <nav class="site-nav">
+      <a href="#" class="surprise" data-surprise>Surprise me</a>
       <a href="${REPO}" target="_blank" rel="noopener">GitHub</a>
       <a href="${REPO}/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a>
     </nav>`;
+  header.querySelector('[data-surprise]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const viz = VISUALIZATIONS[Math.floor(Math.random() * VISUALIZATIONS.length)];
+    location.hash = `#/v/${viz.id}?rand=1`;
+  });
   container.append(header);
 
   const page = document.createElement('div');
   page.className = 'gallery';
 
   const hero = document.createElement('section');
-  hero.className = 'hero';
+  hero.className = 'hero fade-up';
   hero.innerHTML = `
-    <span class="eyebrow">${SPARKLE('#c15f3c', 2)} Open-source gallery</span>
+    <span class="eyebrow">${SPARKLE('#d97f57', 2)} Open-source gallery</span>
     <h1 class="hero-title">Mathematics you can <em>play</em> with.</h1>
     <p class="hero-sub">A small collection of interactive visualizations. Move a slider,
     roll the dice, and share a link to the exact picture you find.</p>`;
@@ -37,9 +43,13 @@ export function renderGallery(container: HTMLElement): void {
   grid.className = 'grid';
   page.append(grid);
 
+  // Render thumbnails one per frame instead of all at once — no load-time jank.
+  const thumbJobs: Array<() => void> = [];
+
   VISUALIZATIONS.forEach((viz, i) => {
     const card = document.createElement('a');
-    card.className = 'card';
+    card.className = 'card fade-up';
+    card.style.animationDelay = `${0.06 * (i + 1)}s`;
     card.href = `#/v/${viz.id}`;
 
     const thumb = document.createElement('div');
@@ -49,17 +59,17 @@ export function renderGallery(container: HTMLElement): void {
     canvas.height = 320;
     thumb.append(canvas);
 
-    if (viz.thumbnail) {
-      requestAnimationFrame(() => {
+    thumbJobs.push(() => {
+      if (viz.thumbnail) {
         try {
-          viz.thumbnail!(canvas, 1234 + i);
+          viz.thumbnail(canvas, 1234 + i);
         } catch {
           thumb.style.background = makeGradientCss(FALLBACK_PALETTES[i % FALLBACK_PALETTES.length], '135deg');
         }
-      });
-    } else {
-      thumb.style.background = makeGradientCss(FALLBACK_PALETTES[i % FALLBACK_PALETTES.length], '135deg');
-    }
+      } else {
+        thumb.style.background = makeGradientCss(FALLBACK_PALETTES[i % FALLBACK_PALETTES.length], '135deg');
+      }
+    });
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
@@ -71,6 +81,14 @@ export function renderGallery(container: HTMLElement): void {
     card.append(thumb, meta);
     grid.append(card);
   });
+
+  let job = 0;
+  const runNext = () => {
+    if (job >= thumbJobs.length) return;
+    thumbJobs[job++]();
+    requestAnimationFrame(runNext);
+  };
+  requestAnimationFrame(runNext);
 
   const footer = document.createElement('footer');
   footer.className = 'gallery-footer';

@@ -22,11 +22,13 @@ static files to GitHub Pages, Vercel, Netlify, or anything that serves a folder.
 ## 🎛 Shared features
 
 - **Control panel** — auto-built from each visualization's parameter list. Collapsible (press `H`).
-- **Random** (`R`) — a fresh, unique picture every time.
+- **Random** (`R`) — a fresh, unique picture every time. "Surprise me" jumps to a random visualization already randomized.
 - **Palettes** — Viridis, Inferno, Magma, Plasma, Turbo plus custom Aurora / Sunset / Ember / Ice / Mono gradients.
 - **Export** — PNG (`S`) and short **WebM** screen recording via `MediaRecorder`.
 - **Share** — encodes every parameter into the URL hash, so a link opens the exact same picture.
 - **Responsive** — touch controls and a bottom-sheet panel on mobile.
+- **Custom cursor** — a glowing comet trail (fine-pointer only; respects `prefers-reduced-motion`).
+- **Smooth & light** — the cursor trail parks itself when idle, the render loop pauses on hidden tabs, and gallery thumbnails render one-per-frame so nothing janks.
 
 ## 🚀 Run locally
 

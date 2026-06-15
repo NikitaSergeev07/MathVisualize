@@ -64,7 +64,7 @@ function makeInstance(host: VizHost): VizInstance {
   function resize(width: number, height: number) {
     const dpr = Math.min(host.dpr, 1.5);
     const longSide = Math.max(width, height) * dpr;
-    const k = longSide > 1500 ? 1500 / longSide : 1;
+    const k = longSide > 1300 ? 1300 / longSide : 1;
     W = Math.max(1, Math.round(width * dpr * k));
     H = Math.max(1, Math.round(height * dpr * k));
     canvas.width = W;
