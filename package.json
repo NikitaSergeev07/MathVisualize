@@ -1,0 +1,17 @@
+{
+  "name": "mathvisualize",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A gallery of interactive, shareable mathematical visualizations.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
+  }
+}
